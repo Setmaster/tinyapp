@@ -41,13 +41,16 @@ app.get("/hello", (req, res) => {
 app.get("/u/:id", (req, res) => {
     const longURL = urlDatabase[req.params.id];
     if (!longURL){
-        res.status(404).send(`404 Can\`t find TinyUrl for ${req.params.id}`);
+        res.status(404).send(`404 Error: Can\`t find TinyUrl for ${req.params.id}`);
     }
     res.redirect(longURL);
 });
 
 app.post("/urls", (req, res) => {
     // format {longUrl: <url>}
+    if (!req.body.longURL){
+        res.status(400).send(`400 Error: Your url is invalid`);
+    }
     const id = generateRandomString();
     urlDatabase[id] = req.body.longURL;
     res.redirect(`/urls/${id}`);

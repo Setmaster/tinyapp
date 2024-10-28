@@ -38,6 +38,14 @@ app.get("/hello", (req, res) => {
     res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+app.get("/u/:id", (req, res) => {
+    const longURL = urlDatabase[req.params.id];
+    if (!longURL){
+        res.status(404).send(`404 Can\`t find TinyUrl for ${req.params.id}`);
+    }
+    res.redirect(longURL);
+});
+
 app.post("/urls", (req, res) => {
     // format {longUrl: <url>}
     const id = generateRandomString();

@@ -19,13 +19,13 @@
 </head>
 
 <body>
-<%- include('../partials/_header') %>
+<%- include('./partials/_header') %>
 
 <main style="margin: 1em;">
     <h3>Create TinyURL</h3>
     <form class="form-inline" action="/urls" method="POST">
         <div class="form-group mb-2">
-            <label for="longURL">Enter a URL:</label>
+            <label for="longURL">Enter a URL:
             <input
                     class="form-control"
                     type="text"
@@ -33,6 +33,7 @@
                     placeholder="http://"
                     style="width: 300px; margin: 1em"
             />
+            </label>
             <button type="submit" class="btn btn-primary">Submit</button>
         </div>
     </form>

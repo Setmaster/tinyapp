@@ -3,4 +3,12 @@
     return Math.floor(100000 + Math.random() * 900000);
 }
 
-module.exports = {generateRandomString};
+const createNewUser = function (email, password){
+    return {
+        id: generateRandomString(),
+        email,
+        password
+    };
+}
+
+module.exports = {generateRandomString, createNewUser};

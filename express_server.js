@@ -67,13 +67,20 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-    // format {longUrl: <url>}
     if (!req.body.longURL){
         res.status(400).send(`400 Error: Your url is invalid`);
     }
     const id = generateRandomString();
     urlDatabase[id] = req.body.longURL;
     res.redirect(`/urls/${id}`);
+});
+
+app.post("/login", (req, res) => {
+    if (!req.body.username){
+        res.status(400).send(`400 Error: Your username is invalid`);
+    }
+    res.cookie('username', req.body.username);
+    res.redirect(`/urls/`);
 });
 
 app.listen(PORT, () => {

@@ -54,6 +54,18 @@ app.post("/urls/:id/delete", (req, res) => {
     res.redirect(`/urls/`);
 });
 
+app.post("/urls/:id", (req, res) => {
+    if (!urlDatabase[req.params.id]){
+        res.status(400).send(`400 Error: Your id is invalid`);
+    }
+    if (!req.body.longURL){
+        res.status(400).send(`400 Error: Your url is invalid`);
+    }
+    const id = req.params.id;
+    urlDatabase[id] = req.body.longURL;
+    res.redirect(`/urls/`);
+});
+
 app.post("/urls", (req, res) => {
     // format {longUrl: <url>}
     if (!req.body.longURL){

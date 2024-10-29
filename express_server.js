@@ -1,4 +1,4 @@
-﻿const {generateRandomString, createNewUser, findUserByEmail} = require("./utilFunctions")
+﻿const {generateRandomString, createNewUser, findUserByEmail, getValidatedUser} = require("./utilFunctions")
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const app = express();
@@ -113,14 +113,6 @@ app.post("/urls", (req, res) => {
     res.redirect(`/urls/${id}`);
 });
 
-// app.post("/login", (req, res) => {
-//     if (!req.body.username) {
-//         res.status(400).send(`400 Error: Your username is invalid`);
-//     }
-//     res.cookie('username', req.body.username);
-//     res.redirect(`/urls/`);
-// });
-
 app.post("/login", (req, res) => {
     if (!req.body.email) {
         res.status(400).send(`400 Error: Invalid email address`);
@@ -128,14 +120,18 @@ app.post("/login", (req, res) => {
     if (!req.body.password) {
         res.status(400).send(`400 Error: Invalid password`);
     }
-    // res.cookie('username', req.body.username);
-    // TODO
+    const user = getValidatedUser(users, req.body.email, req.body.password);
+    if (!user){
+        res.status(403).send(`400 Error: User not found`);
+    }
+    
+    res.cookie('user_id', user.id);
     res.redirect(`/urls/`);
 });
 
 app.post("/logout", (req, res) => {
-    res.clearCookie('username');
-    res.redirect(`/urls/`);
+    res.clearCookie('user_id');
+    res.redirect(`/login/`);
 });
 
 app.post("/register", (req, res) => {
@@ -151,7 +147,6 @@ app.post("/register", (req, res) => {
     const newUser = createNewUser(req.body.email, req.body.password);
     users[newUser.id] = newUser;
     res.cookie('user_id', users[newUser.id].id);
-    console.log(users);
     res.redirect(`/urls/`);
 });
 

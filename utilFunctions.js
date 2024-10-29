@@ -11,4 +11,15 @@ const createNewUser = function (email, password){
     };
 }
 
-module.exports = {generateRandomString, createNewUser};
+const findUserByEmail = function (users, email){
+    for (const userKey of Object.keys(users)) {
+        console.log(Object.keys(users))
+        if (users[userKey].email === email){
+            return users[userKey];
+        }
+    }
+    
+    return null;
+}
+
+module.exports = {generateRandomString, createNewUser, findUserByEmail};

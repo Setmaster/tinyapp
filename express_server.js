@@ -1,11 +1,11 @@
-﻿const {generateRandomString, createNewUser} = require("./utilFunctions")
+﻿const {generateRandomString, createNewUser, findUserByEmail} = require("./utilFunctions")
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: true })); // urlencoded will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body
+app.use(express.urlencoded({extended: true})); // urlencoded will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -71,14 +71,14 @@ app.get("/hello", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
     const longURL = urlDatabase[req.params.id];
-    if (!longURL){
+    if (!longURL) {
         res.status(404).send(`404 Error: Can\`t find TinyUrl for ${req.params.id}`);
     }
     res.redirect(longURL);
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-    if (!urlDatabase[req.params.id]){
+    if (!urlDatabase[req.params.id]) {
         res.status(400).send(`400 Error: Your id is invalid`);
     }
     delete urlDatabase[req.params.id];
@@ -86,10 +86,10 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-    if (!urlDatabase[req.params.id]){
+    if (!urlDatabase[req.params.id]) {
         res.status(400).send(`400 Error: Your id is invalid`);
     }
-    if (!req.body.longURL){
+    if (!req.body.longURL) {
         res.status(400).send(`400 Error: Your url is invalid`);
     }
     const id = req.params.id;
@@ -98,7 +98,7 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-    if (!req.body.longURL){
+    if (!req.body.longURL) {
         res.status(400).send(`400 Error: Your url is invalid`);
     }
     const id = generateRandomString();
@@ -107,7 +107,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-    if (!req.body.username){
+    if (!req.body.username) {
         res.status(400).send(`400 Error: Your username is invalid`);
     }
     res.cookie('username', req.body.username);
@@ -120,11 +120,14 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-    if (!req.body.email){
+    if (!req.body.email) {
         res.status(400).send(`400 Error: Invalid email address`);
     }
-    if (!req.body.password){
+    if (!req.body.password) {
         res.status(400).send(`400 Error: Invalid password`);
+    }
+    if (findUserByEmail(users, req.body.email)) {
+        res.status(400).send(`400 Error: Email already in use`);
     }
     const newUser = createNewUser(req.body.email, req.body.password);
     users[newUser.id] = newUser;

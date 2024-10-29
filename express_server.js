@@ -46,6 +46,14 @@ app.get("/u/:id", (req, res) => {
     res.redirect(longURL);
 });
 
+app.post("/urls/:id/delete", (req, res) => {
+    if (!urlDatabase[req.params.id]){
+        res.status(400).send(`400 Error: Your id is invalid`);
+    }
+    delete urlDatabase[req.params.id];
+    res.redirect(`/urls/`);
+});
+
 app.post("/urls", (req, res) => {
     // format {longUrl: <url>}
     if (!req.body.longURL){

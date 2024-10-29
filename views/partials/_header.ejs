@@ -16,6 +16,7 @@
             <div class="navbar-nav">
                 <a class="nav-item nav-link" href="/urls">My URLs</a>
                 <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+                <a class="nav-item nav-link" href="/register">Register</a>
             </div>
         </div>
         <% if (user && user.email) { %>
@@ -28,21 +29,7 @@
                 </div>
             </form>
         <% } else { %>
-            <form class="form-inline" action="/login" method="POST">
-                <div class="form-group mb-2">
-
-                    <label for="username">Username:
-                        <input
-                                class="form-control"
-                                type="text"
-                                name="username"
-                                placeholder=""
-                                style="margin: 1em"
-                        />
-                    </label>
-                    <button type="submit" class="btn btn-outline-dark">Login</button>
-                </div>
-            </form>
+            <a href="/login" class="btn btn-primary">Login</a>
         <% } %>
     </nav>
 </header>

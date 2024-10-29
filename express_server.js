@@ -65,6 +65,13 @@ app.get("/register", (req, res) => {
     res.render("register", templateVars);
 });
 
+app.get("/login", (req, res) => {
+    const templateVars = {
+        user: users[req.cookies["user_id"]],
+    };
+    res.render("login", templateVars);
+});
+
 app.get("/hello", (req, res) => {
     res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -106,11 +113,23 @@ app.post("/urls", (req, res) => {
     res.redirect(`/urls/${id}`);
 });
 
+// app.post("/login", (req, res) => {
+//     if (!req.body.username) {
+//         res.status(400).send(`400 Error: Your username is invalid`);
+//     }
+//     res.cookie('username', req.body.username);
+//     res.redirect(`/urls/`);
+// });
+
 app.post("/login", (req, res) => {
-    if (!req.body.username) {
-        res.status(400).send(`400 Error: Your username is invalid`);
+    if (!req.body.email) {
+        res.status(400).send(`400 Error: Invalid email address`);
     }
-    res.cookie('username', req.body.username);
+    if (!req.body.password) {
+        res.status(400).send(`400 Error: Invalid password`);
+    }
+    // res.cookie('username', req.body.username);
+    // TODO
     res.redirect(`/urls/`);
 });
 

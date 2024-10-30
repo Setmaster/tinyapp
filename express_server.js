@@ -124,12 +124,8 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-    if (!isUserLoggedIn(req)) {
-        res.status(403).send(`403 Error: You must be logged in to see this page`);
-        return;
-    }
-    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
-        res.status(403).send(`403 Error: You do not own this url and can't see it`);
+    if (!urlDatabase[req.params.id]) {
+        res.status(400).send(`400 Error: Your url id is invalid`);
         return;
     }
     const longURL = urlDatabase[req.params.id].longURL;
@@ -142,12 +138,12 @@ app.post("/urls/:id/delete", (req, res) => {
         res.status(403).send(`403 Error: You must be logged to perform this action`);
         return;
     }
-    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
-        res.status(403).send(`403 Error: You do not own this url and can't delete it`);
-        return;
-    }
     if (!urlDatabase[req.params.id]) {
         res.status(400).send(`400 Error: Your url id is invalid`);
+        return;
+    }
+    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
+        res.status(403).send(`403 Error: You do not own this url and can't delete it`);
         return;
     }
     delete urlDatabase[req.params.id];

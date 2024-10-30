@@ -3,7 +3,7 @@
     createNewUser,
     getUserByEmail,
     getValidatedUser,
-    isUserLoggedIn, addUrlToDB
+    isUserLoggedIn, addUrlToDB, isUserUrlOwner, getUrlsForUser
 } = require("./utilFunctions")
 const cookieParser = require("cookie-parser");
 const express = require("express");
@@ -47,10 +47,15 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+    if (!isUserLoggedIn(req)) {
+        res.redirect("/login");
+        return;
+    }
     const templateVars = {
-        urls: urlDatabase,
         user: users[req.cookies["user_id"]],
     };
+    
+    templateVars["urls"] = getUrlsForUser(urlDatabase, req.cookies["user_id"]);
     res.render("urls_index", templateVars);
 });
 
@@ -66,8 +71,18 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+    if (!isUserLoggedIn(req)) {
+        res.redirect("/login");
+        return;
+    }
+    
     if (!urlDatabase[req.params.id]) {
         res.status(404).send(`404 Error: Can\`t find TinyUrl for ${req.params.id}`);
+        return;
+    }
+
+    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
+        res.status(403).send(`403 Error: You do not own this url and can't see it`);
         return;
     }
 
@@ -109,8 +124,12 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-    if (!urlDatabase[req.params.id]){
-        res.status(404).send(`404 Error: Can\`t find TinyUrl for ${req.params.id}`);
+    if (!isUserLoggedIn(req)) {
+        res.status(403).send(`403 Error: You must be logged in to see this page`);
+        return;
+    }
+    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
+        res.status(403).send(`403 Error: You do not own this url and can't see it`);
         return;
     }
     const longURL = urlDatabase[req.params.id].longURL;
@@ -119,8 +138,16 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
+    if (!isUserLoggedIn(req)) {
+        res.status(403).send(`403 Error: You must be logged to perform this action`);
+        return;
+    }
+    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
+        res.status(403).send(`403 Error: You do not own this url and can't delete it`);
+        return;
+    }
     if (!urlDatabase[req.params.id]) {
-        res.status(400).send(`400 Error: Your id is invalid`);
+        res.status(400).send(`400 Error: Your url id is invalid`);
         return;
     }
     delete urlDatabase[req.params.id];
@@ -128,8 +155,16 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
+    if (!isUserLoggedIn(req)) {
+        res.status(403).send(`403 Error: You must be logged to perform this action`);
+        return;
+    }
     if (!urlDatabase[req.params.id]) {
         res.status(400).send(`400 Error: Your id is invalid`);
+        return;
+    }
+    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
+        res.status(403).send(`403 Error: You do not own this url and can't edit it`);
         return;
     }
     if (!req.body.longURL) {

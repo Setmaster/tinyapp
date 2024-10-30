@@ -41,8 +41,23 @@ const getValidatedUser = function (users, email, password) {
     return user;
 }
 
+const getUrlsForUser = function (urlDatabase, userID){
+    const output = {};
+    for (const urlID of Object.keys(urlDatabase)) {
+        if (urlDatabase[urlID].userID === userID){
+            output[urlID] = urlDatabase[urlID]
+        }
+    }
+    return output;
+}
+
 const isUserLoggedIn = function (req){
     return !!req.cookies["user_id"];
+}
+
+const isUserUrlOwner = function (urlDatabase, urlID, req){
+    const userID = req.cookies["user_id"];
+    return urlDatabase[urlID].userID === userID;
 }
 
 module.exports = {
@@ -51,5 +66,7 @@ module.exports = {
     getUserByEmail,
     getValidatedUser,
     isUserLoggedIn,
-    addUrlToDB
+    addUrlToDB,
+    isUserUrlOwner,
+    getUrlsForUser
 };

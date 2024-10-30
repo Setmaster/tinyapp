@@ -1,6 +1,5 @@
 ﻿const {
-    generateRandomString,
-    createNewUser,
+    addUserToDB,
     getUserByEmail,
     getValidatedUser,
     isUserLoggedIn, addUrlToDB, isUserUrlOwner, getUrlsForUser
@@ -223,9 +222,9 @@ app.post("/register", (req, res) => {
         res.status(400).send(`400 Error: Email already in use`);
         return;
     }
-    const newUser = createNewUser(req.body.email, req.body.password);
-    users[newUser.id] = newUser;
-    res.cookie('user_id', users[newUser.id].id);
+    const newUserID = addUserToDB(users, req.body.email, req.body.password);
+   
+    res.cookie('user_id', newUserID);
     res.redirect(`/urls/`);
 });
 

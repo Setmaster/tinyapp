@@ -1,14 +1,20 @@
-﻿const generateRandomString = function () {
+﻿const bcrypt = require("bcryptjs");
+
+const generateRandomString = function () {
     // generate a random number between 100000 and 999999
     return Math.floor(100000 + Math.random() * 900000);
 }
 
-const createNewUser = function (email, password) {
-    return {
+const addUserToDB = function (database, email, password) {
+    const newUser = {
         id: generateRandomString(),
         email,
-        password
+        password: bcrypt.hashSync(password, 10)
     };
+    
+    database[newUser.id] = newUser;
+    
+    return newUser.id;
 }
 
 const addUrlToDB = function (database, req){
@@ -34,7 +40,7 @@ const getUserByEmail = function (users, email) {
 
 const getValidatedUser = function (users, email, password) {
     const user = getUserByEmail(users, email);
-    if (!user || user.password !== password) {
+    if (!user || !bcrypt.compareSync(password, user.password)) {
         return null;
     }
 
@@ -62,7 +68,7 @@ const isUserUrlOwner = function (urlDatabase, urlID, req){
 
 module.exports = {
     generateRandomString,
-    createNewUser,
+    addUserToDB,
     getUserByEmail,
     getValidatedUser,
     isUserLoggedIn,

@@ -11,7 +11,7 @@ const createNewUser = function (email, password) {
     };
 }
 
-const findUserByEmail = function (users, email) {
+const getUserByEmail = function (users, email) {
     for (const userKey of Object.keys(users)) {
         if (users[userKey].email === email) {
             return users[userKey];
@@ -22,7 +22,7 @@ const findUserByEmail = function (users, email) {
 }
 
 const getValidatedUser = function (users, email, password) {
-    const user = findUserByEmail(users, email);
+    const user = getUserByEmail(users, email);
     if (!user || user.password !== password) {
         return null;
     }
@@ -30,4 +30,4 @@ const getValidatedUser = function (users, email, password) {
     return user;
 }
 
-module.exports = {generateRandomString, createNewUser, findUserByEmail, getValidatedUser};
+module.exports = {generateRandomString, createNewUser, getUserByEmail, getValidatedUser};

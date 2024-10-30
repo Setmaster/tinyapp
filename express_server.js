@@ -1,4 +1,4 @@
-﻿const {generateRandomString, createNewUser, findUserByEmail, getValidatedUser} = require("./utilFunctions")
+﻿const {generateRandomString, createNewUser, getUserByEmail, getValidatedUser} = require("./utilFunctions")
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const app = express();
@@ -59,6 +59,10 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+    if (req.cookies["user_id"]){
+        res.redirect("/urls");
+    }
+    
     const templateVars = {
         user: users[req.cookies["user_id"]],
     };
@@ -66,9 +70,14 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
+    if (req.cookies["user_id"]){
+        res.redirect("/urls");
+    }
+    
     const templateVars = {
         user: users[req.cookies["user_id"]],
     };
+    
     res.render("login", templateVars);
 });
 
@@ -141,7 +150,7 @@ app.post("/register", (req, res) => {
     if (!req.body.password) {
         res.status(400).send(`400 Error: Invalid password`);
     }
-    if (findUserByEmail(users, req.body.email)) {
+    if (getUserByEmail(users, req.body.email)) {
         res.status(400).send(`400 Error: Email already in use`);
     }
     const newUser = createNewUser(req.body.email, req.body.password);

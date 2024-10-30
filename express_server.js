@@ -1,4 +1,10 @@
-﻿const {generateRandomString, createNewUser, getUserByEmail, getValidatedUser, isUserLoggedIn} = require("./utilFunctions")
+﻿const {
+    generateRandomString,
+    createNewUser,
+    getUserByEmail,
+    getValidatedUser,
+    isUserLoggedIn, addUrlToDB
+} = require("./utilFunctions")
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const app = express();
@@ -9,8 +15,14 @@ app.use(express.urlencoded({extended: true})); // urlencoded will convert the re
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-    b2xVn2: "http://www.lighthouselabs.ca",
-    "9sm5xK": "http://www.google.com",
+    b2xVn2: {
+        longURL: "https://github.com/Setmaster/tinyapp",
+        userID: "userRandomID"
+    },
+    "9sm5xK": {
+        longURL: "http://www.google.com",
+        userID: "user2RandomID"
+    },
 };
 
 const users = {
@@ -43,7 +55,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-    if (!isUserLoggedIn(req)){
+    if (!isUserLoggedIn(req)) {
         res.redirect("/login");
         return;
     }
@@ -54,20 +66,25 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+    if (!urlDatabase[req.params.id]) {
+        res.status(404).send(`404 Error: Can\`t find TinyUrl for ${req.params.id}`);
+        return;
+    }
+
     const templateVars = {
         id: req.params.id,
-        longURL: urlDatabase[req.params.id],
+        longURL: urlDatabase[req.params.id].longURL,
         user: users[req.cookies["user_id"]],
     };
     res.render("urls_show", templateVars);
 });
 
 app.get("/register", (req, res) => {
-    if (isUserLoggedIn(req)){
+    if (isUserLoggedIn(req)) {
         res.redirect("/urls");
         return;
     }
-    
+
     const templateVars = {
         user: users[req.cookies["user_id"]],
     };
@@ -75,15 +92,15 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-    if (isUserLoggedIn(req)){
+    if (isUserLoggedIn(req)) {
         res.redirect("/urls");
         return;
     }
-    
+
     const templateVars = {
         user: users[req.cookies["user_id"]],
     };
-    
+
     res.render("login", templateVars);
 });
 
@@ -92,11 +109,12 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-    const longURL = urlDatabase[req.params.id];
-    if (!longURL) {
+    if (!urlDatabase[req.params.id]){
         res.status(404).send(`404 Error: Can\`t find TinyUrl for ${req.params.id}`);
         return;
     }
+    const longURL = urlDatabase[req.params.id].longURL;
+
     res.redirect(longURL);
 });
 
@@ -119,22 +137,21 @@ app.post("/urls/:id", (req, res) => {
         return;
     }
     const id = req.params.id;
-    urlDatabase[id] = req.body.longURL;
+    urlDatabase[id].longURL = req.body.longURL;
     res.redirect(`/urls/`);
 });
 
 app.post("/urls", (req, res) => {
-    if (!isUserLoggedIn(req)){
+    if (!isUserLoggedIn(req)) {
         res.status(403).send(`403 Error: You must be logged in to short urls`);
         return;
     }
-    
+
     if (!req.body.longURL) {
         res.status(400).send(`400 Error: Your url is invalid`);
         return;
     }
-    const id = generateRandomString();
-    urlDatabase[id] = req.body.longURL;
+    const id = addUrlToDB(urlDatabase, req);
     res.redirect(`/urls/${id}`);
 });
 
@@ -148,11 +165,11 @@ app.post("/login", (req, res) => {
         return;
     }
     const user = getValidatedUser(users, req.body.email, req.body.password);
-    if (!user){
+    if (!user) {
         res.status(403).send(`400 Error: User not found`);
         return;
     }
-    
+
     res.cookie('user_id', user.id);
     res.redirect(`/urls/`);
 });

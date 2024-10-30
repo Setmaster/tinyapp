@@ -11,6 +11,17 @@ const createNewUser = function (email, password) {
     };
 }
 
+const addUrlToDB = function (database, req){
+ const newUrl = {
+     longURL: req.body.longURL,
+     userID: req.cookies["user_id"]
+ };
+ const id = generateRandomString();
+ database[id] = newUrl;
+ 
+ return id;
+}
+
 const getUserByEmail = function (users, email) {
     for (const userKey of Object.keys(users)) {
         if (users[userKey].email === email) {
@@ -34,4 +45,11 @@ const isUserLoggedIn = function (req){
     return !!req.cookies["user_id"];
 }
 
-module.exports = {generateRandomString, createNewUser, getUserByEmail, getValidatedUser, isUserLoggedIn};
+module.exports = {
+    generateRandomString,
+    createNewUser,
+    getUserByEmail,
+    getValidatedUser,
+    isUserLoggedIn,
+    addUrlToDB
+};

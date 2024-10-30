@@ -30,4 +30,8 @@ const getValidatedUser = function (users, email, password) {
     return user;
 }
 
-module.exports = {generateRandomString, createNewUser, getUserByEmail, getValidatedUser};
+const isUserLoggedIn = function (req){
+    return !!req.cookies["user_id"];
+}
+
+module.exports = {generateRandomString, createNewUser, getUserByEmail, getValidatedUser, isUserLoggedIn};

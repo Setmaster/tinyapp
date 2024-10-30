@@ -1,4 +1,4 @@
-﻿const {generateRandomString, createNewUser, getUserByEmail, getValidatedUser} = require("./utilFunctions")
+﻿const {generateRandomString, createNewUser, getUserByEmail, getValidatedUser, isUserLoggedIn} = require("./utilFunctions")
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const app = express();
@@ -43,6 +43,10 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+    if (!isUserLoggedIn(req)){
+        res.redirect("/login");
+        return;
+    }
     const templateVars = {
         user: users[req.cookies["user_id"]],
     };
@@ -59,8 +63,9 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-    if (req.cookies["user_id"]){
+    if (isUserLoggedIn(req)){
         res.redirect("/urls");
+        return;
     }
     
     const templateVars = {
@@ -70,8 +75,9 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-    if (req.cookies["user_id"]){
+    if (isUserLoggedIn(req)){
         res.redirect("/urls");
+        return;
     }
     
     const templateVars = {
@@ -89,6 +95,7 @@ app.get("/u/:id", (req, res) => {
     const longURL = urlDatabase[req.params.id];
     if (!longURL) {
         res.status(404).send(`404 Error: Can\`t find TinyUrl for ${req.params.id}`);
+        return;
     }
     res.redirect(longURL);
 });
@@ -96,6 +103,7 @@ app.get("/u/:id", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
     if (!urlDatabase[req.params.id]) {
         res.status(400).send(`400 Error: Your id is invalid`);
+        return;
     }
     delete urlDatabase[req.params.id];
     res.redirect(`/urls/`);
@@ -104,9 +112,11 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
     if (!urlDatabase[req.params.id]) {
         res.status(400).send(`400 Error: Your id is invalid`);
+        return;
     }
     if (!req.body.longURL) {
         res.status(400).send(`400 Error: Your url is invalid`);
+        return;
     }
     const id = req.params.id;
     urlDatabase[id] = req.body.longURL;
@@ -114,8 +124,14 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+    if (!isUserLoggedIn(req)){
+        res.status(403).send(`403 Error: You must be logged in to short urls`);
+        return;
+    }
+    
     if (!req.body.longURL) {
         res.status(400).send(`400 Error: Your url is invalid`);
+        return;
     }
     const id = generateRandomString();
     urlDatabase[id] = req.body.longURL;
@@ -125,13 +141,16 @@ app.post("/urls", (req, res) => {
 app.post("/login", (req, res) => {
     if (!req.body.email) {
         res.status(400).send(`400 Error: Invalid email address`);
+        return;
     }
     if (!req.body.password) {
         res.status(400).send(`400 Error: Invalid password`);
+        return;
     }
     const user = getValidatedUser(users, req.body.email, req.body.password);
     if (!user){
         res.status(403).send(`400 Error: User not found`);
+        return;
     }
     
     res.cookie('user_id', user.id);
@@ -146,12 +165,15 @@ app.post("/logout", (req, res) => {
 app.post("/register", (req, res) => {
     if (!req.body.email) {
         res.status(400).send(`400 Error: Invalid email address`);
+        return;
     }
     if (!req.body.password) {
         res.status(400).send(`400 Error: Invalid password`);
+        return;
     }
     if (getUserByEmail(users, req.body.email)) {
         res.status(400).send(`400 Error: Email already in use`);
+        return;
     }
     const newUser = createNewUser(req.body.email, req.body.password);
     users[newUser.id] = newUser;

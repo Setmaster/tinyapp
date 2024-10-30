@@ -160,7 +160,7 @@ app.post("/urls/:id", (req, res) => {
         return;
     }
     if (!urlDatabase[req.params.id]) {
-        res.status(400).send(`400 Error: Your id is invalid`);
+        res.status(400).send(`400 Error: Your url id is invalid`);
         return;
     }
     if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
@@ -168,7 +168,7 @@ app.post("/urls/:id", (req, res) => {
         return;
     }
     if (!req.body.longURL) {
-        res.status(400).send(`400 Error: Your url is invalid`);
+        res.status(400).send(`400 Error: Your new url value is invalid`);
         return;
     }
     const id = req.params.id;

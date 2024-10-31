@@ -60,35 +60,6 @@ const getUrlsForUser = function(urlDatabase, id) {
   return output;
 };
 
-const performAnalytics = function(urlDatabase) {
-  return function(req, res, next) {
-    if (!urlDatabase[req.params.id]) {
-      return res.status(400).send(`400 Error: Your url id is invalid`);
-    }
-        
-    urlDatabase[req.params.id].visitors += 1;
-        
-    if (!req.session.visitor_id) {
-      req.session.visitor_id = generateRandomString();
-    }
-        
-    if (urlDatabase[req.params.id].visitorsList.find(visitorEntry => visitorEntry.id === req.session.visitor_id)) {
-      console.log(urlDatabase);
-      next();
-      return;
-    }
-
-    urlDatabase[req.params.id].visitorsList.push({
-      id: req.session.visitor_id,
-      timestamp: new Date().getTime()
-    });
-
-    urlDatabase[req.params.id].uniqueVisitors += 1;
-    console.log(urlDatabase);
-    next();
-  };
-};
-
 const isUserLoggedIn = function(req) {
   return req.session && req.session.user_id;
 };
@@ -115,6 +86,35 @@ const requireOwnership = function(urlDatabase) {
     }
     next();
   };
+};
+
+const performAnalytics = function(urlDatabase) {
+    return function(req, res, next) {
+        if (!urlDatabase[req.params.id]) {
+            return res.status(400).send(`400 Error: Your url id is invalid`);
+        }
+
+        urlDatabase[req.params.id].visitors += 1;
+
+        if (!req.session.visitor_id) {
+            req.session.visitor_id = generateRandomString();
+        }
+
+        if (urlDatabase[req.params.id].visitorsList.find(visitorEntry => visitorEntry.id === req.session.visitor_id)) {
+            console.log(urlDatabase);
+            next();
+            return;
+        }
+
+        urlDatabase[req.params.id].visitorsList.push({
+            id: req.session.visitor_id,
+            timestamp: new Date().getTime()
+        });
+
+        urlDatabase[req.params.id].uniqueVisitors += 1;
+        console.log(urlDatabase);
+        next();
+    };
 };
 
 module.exports = {

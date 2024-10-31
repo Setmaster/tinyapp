@@ -3,7 +3,7 @@
     getUserByEmail,
     getValidatedUser, addUrlToDB, getUrlsForUser, requireLogin, requireOwnership, isUserLoggedIn
 } = require("./helpers")
-var cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session')
 const express = require("express");
 const app = express();
 app.use(cookieSession({
@@ -42,8 +42,8 @@ const users = {
     },
 };
 
-app.get("/", (req, res) => {
-    res.send("Hello!");
+app.get("/", requireLogin , (req, res) => {
+    res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
@@ -105,7 +105,11 @@ app.get("/hello", (req, res) => {
     res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-app.get("/u/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
+app.get("/u/:id", (req, res) => {
+    if (!urlDatabase[req.params.id]) {
+        res.status(400).send(`400 Error: Your url id is invalid`);
+        return;
+    }
     const longURL = urlDatabase[req.params.id].longURL;
 
     res.redirect(longURL);

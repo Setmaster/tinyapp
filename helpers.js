@@ -66,13 +66,33 @@ const isUserUrlOwner = function (urlDatabase, urlID, req){
     return urlDatabase[urlID].id === id;
 }
 
+const requireLogin = function (req, res, next) {
+    if (!isUserLoggedIn(req)) {
+        return res.redirect("/login");
+    }
+    next();
+};
+
+const requireOwnership = function (urlDatabase) {
+    return function (req, res, next) {
+        if (!urlDatabase[req.params.id]) {
+            return res.status(404).send(`404 Error: Can't find TinyUrl for ${req.params.id}`);
+        }
+        if (!isUserUrlOwner(urlDatabase, req.params.id, req)) {
+            return res.status(403).send(`403 Error: You do not own this url and can't see it`);
+        }
+        next();
+    };
+};
+
 module.exports = {
     generateRandomString,
     addUserToDB,
     getUserByEmail,
     getValidatedUser,
-    isUserLoggedIn,
     addUrlToDB,
-    isUserUrlOwner,
-    getUrlsForUser
+    getUrlsForUser,
+    isUserLoggedIn,
+    requireLogin,
+    requireOwnership
 };

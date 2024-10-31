@@ -1,8 +1,7 @@
 ﻿const {
     addUserToDB,
     getUserByEmail,
-    getValidatedUser,
-    isUserLoggedIn, addUrlToDB, isUserUrlOwner, getUrlsForUser
+    getValidatedUser, addUrlToDB, getUrlsForUser, requireLogin, requireOwnership, isUserLoggedIn
 } = require("./helpers")
 var cookieSession = require('cookie-session')
 const express = require("express");
@@ -51,11 +50,7 @@ app.get("/urls.json", (req, res) => {
     res.json(urlDatabase);
 });
 
-app.get("/urls", (req, res) => {
-    if (!isUserLoggedIn(req)) {
-        res.redirect("/login");
-        return;
-    }
+app.get("/urls", requireLogin, (req, res) => {
     const templateVars = {
         user: users[req.session.user_id],
     };
@@ -64,38 +59,20 @@ app.get("/urls", (req, res) => {
     res.render("urls_index", templateVars);
 });
 
-app.get("/urls/new", (req, res) => {
-    if (!isUserLoggedIn(req)) {
-        res.redirect("/login");
-        return;
-    }
+app.get("/urls/new", requireLogin, (req, res) => {
     const templateVars = {
         user: users[req.session.user_id],
     };
     res.render("urls_new", templateVars);
 });
 
-app.get("/urls/:id", (req, res) => {
-    if (!isUserLoggedIn(req)) {
-        res.redirect("/login");
-        return;
-    }
-    
-    if (!urlDatabase[req.params.id]) {
-        res.status(404).send(`404 Error: Can\`t find TinyUrl for ${req.params.id}`);
-        return;
-    }
-
-    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
-        res.status(403).send(`403 Error: You do not own this url and can't see it`);
-        return;
-    }
-
+app.get("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
     const templateVars = {
         id: req.params.id,
         longURL: urlDatabase[req.params.id].longURL,
         user: users[req.session.user_id],
     };
+    
     res.render("urls_show", templateVars);
 });
 
@@ -128,46 +105,18 @@ app.get("/hello", (req, res) => {
     res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-app.get("/u/:id", (req, res) => {
-    if (!urlDatabase[req.params.id]) {
-        res.status(400).send(`400 Error: Your url id is invalid`);
-        return;
-    }
+app.get("/u/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
     const longURL = urlDatabase[req.params.id].longURL;
 
     res.redirect(longURL);
 });
 
-app.post("/urls/:id/delete", (req, res) => {
-    if (!isUserLoggedIn(req)) {
-        res.status(403).send(`403 Error: You must be logged to perform this action`);
-        return;
-    }
-    if (!urlDatabase[req.params.id]) {
-        res.status(400).send(`400 Error: Your url id is invalid`);
-        return;
-    }
-    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
-        res.status(403).send(`403 Error: You do not own this url and can't delete it`);
-        return;
-    }
+app.post("/urls/:id/delete", requireLogin, requireOwnership(urlDatabase), (req, res) => {
     delete urlDatabase[req.params.id];
     res.redirect(`/urls/`);
 });
 
-app.post("/urls/:id", (req, res) => {
-    if (!isUserLoggedIn(req)) {
-        res.status(403).send(`403 Error: You must be logged to perform this action`);
-        return;
-    }
-    if (!urlDatabase[req.params.id]) {
-        res.status(400).send(`400 Error: Your url id is invalid`);
-        return;
-    }
-    if (!isUserUrlOwner(urlDatabase, req.params.id, req)){
-        res.status(403).send(`403 Error: You do not own this url and can't edit it`);
-        return;
-    }
+app.post("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
     if (!req.body.longURL) {
         res.status(400).send(`400 Error: Your new url value is invalid`);
         return;
@@ -177,12 +126,7 @@ app.post("/urls/:id", (req, res) => {
     res.redirect(`/urls/`);
 });
 
-app.post("/urls", (req, res) => {
-    if (!isUserLoggedIn(req)) {
-        res.status(403).send(`403 Error: You must be logged in to short urls`);
-        return;
-    }
-
+app.post("/urls", requireLogin, (req, res) => {
     if (!req.body.longURL) {
         res.status(400).send(`400 Error: Your url is invalid`);
         return;

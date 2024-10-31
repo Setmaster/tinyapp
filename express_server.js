@@ -1,7 +1,7 @@
 ﻿const {
     addUserToDB,
     getUserByEmail,
-    getValidatedUser, addUrlToDB, getUrlsForUser, requireLogin, requireOwnership, isUserLoggedIn
+    getValidatedUser, addUrlToDB, getUrlsForUser, requireLogin, requireOwnership, isUserLoggedIn, performAnalytics
 } = require("./helpers")
 const cookieSession = require('cookie-session')
 const express = require("express");
@@ -23,11 +23,17 @@ app.set("view engine", "ejs");
 const urlDatabase = {
     b2xVn2: {
         longURL: "https://github.com/Setmaster/tinyapp",
-        id: "userRandomID"
+        id: "userRandomID",
+        visitors: 0,
+        uniqueVisitors: 0,
+        visitorsList: []
     },
     "9sm5xK": {
         longURL: "http://www.google.com",
-        id: "user2RandomID"
+        id: "user2RandomID",
+        visitors: 0,
+        uniqueVisitors: 0,
+        visitorsList: []
     },
 };
 
@@ -73,6 +79,9 @@ app.get("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => 
         id: req.params.id,
         longURL: urlDatabase[req.params.id].longURL,
         user: users[req.session.user_id],
+        visitors: urlDatabase[req.params.id].visitors,
+        uniqueVisitors: urlDatabase[req.params.id].uniqueVisitors,
+        visitorsList: urlDatabase[req.params.id].visitorsList
     };
     
     res.render("urls_show", templateVars);
@@ -107,13 +116,9 @@ app.get("/hello", (req, res) => {
     res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-app.get("/u/:id", (req, res) => {
-    if (!urlDatabase[req.params.id]) {
-        res.status(400).send(`400 Error: Your url id is invalid`);
-        return;
-    }
+app.get("/u/:id", performAnalytics(urlDatabase),(req, res) => {
     const longURL = urlDatabase[req.params.id].longURL;
-
+    
     res.redirect(longURL);
 });
 
@@ -161,7 +166,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-    req.session = null; // destroy session
+    req.session.user_id = null; // nullify user_id
     res.redirect(`/login/`);
 });
 

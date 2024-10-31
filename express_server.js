@@ -3,7 +3,7 @@
     getUserByEmail,
     getValidatedUser,
     isUserLoggedIn, addUrlToDB, isUserUrlOwner, getUrlsForUser
-} = require("./utilFunctions")
+} = require("./helpers")
 var cookieSession = require('cookie-session')
 const express = require("express");
 const app = express();

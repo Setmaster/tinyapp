@@ -5,6 +5,7 @@
 } = require("./helpers")
 const cookieSession = require('cookie-session')
 const express = require("express");
+const methodOverride = require('method-override');
 const app = express();
 app.use(cookieSession({
     name: 'session',
@@ -12,7 +13,8 @@ app.use(cookieSession({
 
     // Cookie Options
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+}));
+app.use(methodOverride('_method'));
 const PORT = 8080; // default port 8080
 
 app.use(express.urlencoded({extended: true})); // urlencoded will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body
@@ -115,12 +117,12 @@ app.get("/u/:id", (req, res) => {
     res.redirect(longURL);
 });
 
-app.post("/urls/:id/delete", requireLogin, requireOwnership(urlDatabase), (req, res) => {
+app.delete("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
     delete urlDatabase[req.params.id];
     res.redirect(`/urls/`);
 });
 
-app.post("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
+app.put("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
     if (!req.body.longURL) {
         res.status(400).send(`400 Error: Your new url value is invalid`);
         return;

@@ -24,7 +24,7 @@
     
     <div class="card-footer text-muted"></div>
     <h2>Edit</h2>
-    <form class="form-inline justify-content-center" action="/urls/<%= id %>" method="POST">
+    <form class="form-inline justify-content-center" action="/urls/<%= id %>?_method=PUT" method="POST">
         <div class="form-group mb-2">
             <label for="longURL">New URL:
             <input

@@ -22,11 +22,11 @@ app.set("view engine", "ejs");
 const urlDatabase = {
     b2xVn2: {
         longURL: "https://github.com/Setmaster/tinyapp",
-        userID: "userRandomID"
+        id: "userRandomID"
     },
     "9sm5xK": {
         longURL: "http://www.google.com",
-        userID: "user2RandomID"
+        id: "user2RandomID"
     },
 };
 
@@ -228,9 +228,9 @@ app.post("/register", (req, res) => {
         res.status(400).send(`400 Error: Email already in use`);
         return;
     }
-    const newUserID = addUserToDB(users, req.body.email, req.body.password);
+    const newid = addUserToDB(users, req.body.email, req.body.password);
 
-    req.session.user_id = newUserID;
+    req.session.user_id = newid;
     res.redirect(`/urls/`);
 });
 

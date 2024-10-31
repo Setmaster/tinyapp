@@ -20,7 +20,7 @@ const addUserToDB = function (database, email, password) {
 const addUrlToDB = function (database, req){
  const newUrl = {
      longURL: req.body.longURL,
-     userID: req.session.user_id
+     id: req.session.user_id
  };
  const id = generateRandomString();
  database[id] = newUrl;
@@ -47,10 +47,10 @@ const getValidatedUser = function (users, email, password) {
     return user;
 }
 
-const getUrlsForUser = function (urlDatabase, userID){
+const getUrlsForUser = function (urlDatabase, id){
     const output = {};
     for (const urlID of Object.keys(urlDatabase)) {
-        if (urlDatabase[urlID].userID === userID){
+        if (urlDatabase[urlID].id === id){
             output[urlID] = urlDatabase[urlID]
         }
     }
@@ -62,8 +62,8 @@ const isUserLoggedIn = function (req){
 }
 
 const isUserUrlOwner = function (urlDatabase, urlID, req){
-    const userID = req.session.user_id;
-    return urlDatabase[urlID].userID === userID;
+    const id = req.session.user_id;
+    return urlDatabase[urlID].id === id;
 }
 
 module.exports = {

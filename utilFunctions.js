@@ -20,7 +20,7 @@ const addUserToDB = function (database, email, password) {
 const addUrlToDB = function (database, req){
  const newUrl = {
      longURL: req.body.longURL,
-     userID: req.cookies["user_id"]
+     userID: req.session.user_id
  };
  const id = generateRandomString();
  database[id] = newUrl;
@@ -58,11 +58,11 @@ const getUrlsForUser = function (urlDatabase, userID){
 }
 
 const isUserLoggedIn = function (req){
-    return !!req.cookies["user_id"];
+    return req.session && req.session.user_id;
 }
 
 const isUserUrlOwner = function (urlDatabase, urlID, req){
-    const userID = req.cookies["user_id"];
+    const userID = req.session.user_id;
     return urlDatabase[urlID].userID === userID;
 }
 

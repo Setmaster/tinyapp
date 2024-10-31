@@ -4,12 +4,18 @@
     getValidatedUser,
     isUserLoggedIn, addUrlToDB, isUserUrlOwner, getUrlsForUser
 } = require("./utilFunctions")
-const cookieParser = require("cookie-parser");
+var cookieSession = require('cookie-session')
 const express = require("express");
 const app = express();
+app.use(cookieSession({
+    name: 'session',
+    keys: ["supersecretkey"],
+
+    // Cookie Options
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 const PORT = 8080; // default port 8080
 
-app.use(cookieParser());
 app.use(express.urlencoded({extended: true})); // urlencoded will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body
 app.set("view engine", "ejs");
 
@@ -51,10 +57,10 @@ app.get("/urls", (req, res) => {
         return;
     }
     const templateVars = {
-        user: users[req.cookies["user_id"]],
+        user: users[req.session.user_id],
     };
     
-    templateVars["urls"] = getUrlsForUser(urlDatabase, req.cookies["user_id"]);
+    templateVars["urls"] = getUrlsForUser(urlDatabase, req.session.user_id);
     res.render("urls_index", templateVars);
 });
 
@@ -64,7 +70,7 @@ app.get("/urls/new", (req, res) => {
         return;
     }
     const templateVars = {
-        user: users[req.cookies["user_id"]],
+        user: users[req.session.user_id],
     };
     res.render("urls_new", templateVars);
 });
@@ -88,7 +94,7 @@ app.get("/urls/:id", (req, res) => {
     const templateVars = {
         id: req.params.id,
         longURL: urlDatabase[req.params.id].longURL,
-        user: users[req.cookies["user_id"]],
+        user: users[req.session.user_id],
     };
     res.render("urls_show", templateVars);
 });
@@ -100,7 +106,7 @@ app.get("/register", (req, res) => {
     }
 
     const templateVars = {
-        user: users[req.cookies["user_id"]],
+        user: users[req.session.user_id],
     };
     res.render("register", templateVars);
 });
@@ -112,7 +118,7 @@ app.get("/login", (req, res) => {
     }
 
     const templateVars = {
-        user: users[req.cookies["user_id"]],
+        user: users[req.session.user_id],
     };
 
     res.render("login", templateVars);
@@ -200,12 +206,12 @@ app.post("/login", (req, res) => {
         return;
     }
 
-    res.cookie('user_id', user.id);
+    req.session.user_id = user.id;
     res.redirect(`/urls/`);
 });
 
 app.post("/logout", (req, res) => {
-    res.clearCookie('user_id');
+    req.session = null; // destroy session
     res.redirect(`/login/`);
 });
 
@@ -223,8 +229,8 @@ app.post("/register", (req, res) => {
         return;
     }
     const newUserID = addUserToDB(users, req.body.email, req.body.password);
-   
-    res.cookie('user_id', newUserID);
+
+    req.session.user_id = newUserID;
     res.redirect(`/urls/`);
 });
 

@@ -78,16 +78,16 @@ const isUserUrlOwner = function(urlDatabase, urlID, req) {
 // Middleware to require a user to be logged in to access a route
 // Optionally redirects to the login page or sends a 401 status
 const requireLogin = function(redirect = true) {
-    return function(req, res, next) {
-        if (!isUserLoggedIn(req)) {
-            if (redirect) {
-                return res.redirect("/login");
-            } else {
-                return res.status(401).send(`401 Unauthorized: You must be logged in to access this page`);
-            }
-        }
-        next();
-    };
+  return function(req, res, next) {
+    if (!isUserLoggedIn(req)) {
+      if (redirect) {
+        return res.redirect("/login");
+      } else {
+        return res.status(401).send(`401 Unauthorized: You must be logged in to access this page`);
+      }
+    }
+    next();
+  };
 };
 
 // Middleware to require ownership of a URL for access or modification
@@ -105,32 +105,32 @@ const requireOwnership = function(urlDatabase) {
 
 // Middleware to perform analytics by tracking visitor data for a URL
 const performAnalytics = function(urlDatabase) {
-    return function(req, res, next) {
-        if (!urlDatabase[req.params.id]) {
-            return res.status(400).send(`400 Error: Your url id is invalid`);
-        }
+  return function(req, res, next) {
+    if (!urlDatabase[req.params.id]) {
+      return res.status(400).send(`400 Error: Your url id is invalid`);
+    }
 
-        urlDatabase[req.params.id].visitors += 1;
+    urlDatabase[req.params.id].visitors += 1;
 
-        if (!req.session.visitor_id) {
-            req.session.visitor_id = generateRandomString();
-        }
+    if (!req.session.visitor_id) {
+      req.session.visitor_id = generateRandomString();
+    }
 
-        if (urlDatabase[req.params.id].visitorsList.find(visitorEntry => visitorEntry.id === req.session.visitor_id)) {
-            console.log(urlDatabase);
-            next();
-            return;
-        }
+    if (urlDatabase[req.params.id].visitorsList.find(visitorEntry => visitorEntry.id === req.session.visitor_id)) {
+      console.log(urlDatabase);
+      next();
+      return;
+    }
 
-        urlDatabase[req.params.id].visitorsList.push({
-            id: req.session.visitor_id,
-            timestamp: new Date().getTime()
-        });
+    urlDatabase[req.params.id].visitorsList.push({
+      id: req.session.visitor_id,
+      timestamp: new Date().getTime()
+    });
 
-        urlDatabase[req.params.id].uniqueVisitors += 1;
-        console.log(urlDatabase);
-        next();
-    };
+    urlDatabase[req.params.id].uniqueVisitors += 1;
+    console.log(urlDatabase);
+    next();
+  };
 };
 
 module.exports = {

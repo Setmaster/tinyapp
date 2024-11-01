@@ -1,10 +1,11 @@
 ﻿const bcrypt = require("bcryptjs");
 
+// Generates a random number between 100000 and 999999
 const generateRandomString = function() {
-  // generate a random number between 100000 and 999999
   return Math.floor(100000 + Math.random() * 900000);
 };
 
+// Adds a new user to the database with a hashed password and returns the new user ID
 const addUserToDB = function(database, email, password) {
   const newUser = {
     id: generateRandomString(),
@@ -17,6 +18,7 @@ const addUserToDB = function(database, email, password) {
   return newUser.id;
 };
 
+// Adds a new URL to the database for the logged-in user and returns the new URL ID
 const addUrlToDB = function(database, req) {
   const newUrl = {
     longURL: req.body.longURL,
@@ -31,6 +33,7 @@ const addUrlToDB = function(database, req) {
   return id;
 };
 
+// Retrieves a user object by email from the users database, returns null if not found
 const getUserByEmail = function(users, email) {
   for (const userKey of Object.keys(users)) {
     if (users[userKey].email === email) {
@@ -41,6 +44,7 @@ const getUserByEmail = function(users, email) {
   return null;
 };
 
+// Validates a user by checking if the email exists and the password matches the hashed password
 const getValidatedUser = function(users, email, password) {
   const user = getUserByEmail(users, email);
   if (!user || !bcrypt.compareSync(password, user.password)) {
@@ -50,6 +54,7 @@ const getValidatedUser = function(users, email, password) {
   return user;
 };
 
+// Retrieves all URLs associated with a specific user ID from the URL database
 const getUrlsForUser = function(urlDatabase, id) {
   const output = {};
   for (const urlID of Object.keys(urlDatabase)) {
@@ -60,6 +65,7 @@ const getUrlsForUser = function(urlDatabase, id) {
   return output;
 };
 
+// Checks if a user is logged in by verifying the presence of a user ID in the session
 const isUserLoggedIn = function(req) {
   return req.session && req.session.user_id;
 };
@@ -69,13 +75,22 @@ const isUserUrlOwner = function(urlDatabase, urlID, req) {
   return urlDatabase[urlID].id === id;
 };
 
-const requireLogin = function(req, res, next) {
-  if (!isUserLoggedIn(req)) {
-    return res.redirect("/login");
-  }
-  next();
+// Middleware to require a user to be logged in to access a route
+// Optionally redirects to the login page or sends a 401 status
+const requireLogin = function(redirect = true) {
+    return function(req, res, next) {
+        if (!isUserLoggedIn(req)) {
+            if (redirect) {
+                return res.redirect("/login");
+            } else {
+                return res.status(401).send(`401 Unauthorized: You must be logged in to access this page`);
+            }
+        }
+        next();
+    };
 };
 
+// Middleware to require ownership of a URL for access or modification
 const requireOwnership = function(urlDatabase) {
   return function(req, res, next) {
     if (!urlDatabase[req.params.id]) {
@@ -88,6 +103,7 @@ const requireOwnership = function(urlDatabase) {
   };
 };
 
+// Middleware to perform analytics by tracking visitor data for a URL
 const performAnalytics = function(urlDatabase) {
     return function(req, res, next) {
         if (!urlDatabase[req.params.id]) {

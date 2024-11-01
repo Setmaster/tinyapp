@@ -50,15 +50,18 @@ const users = {
   },
 };
 
-app.get("/", requireLogin , (req, res) => {
+// Route to redirect to /urls if logged in
+app.get("/", requireLogin(), (req, res) => {
   res.redirect("/urls");
 });
 
+// Route to return the URL database in JSON format
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/urls", requireLogin, (req, res) => {
+// Route to display the URLs page containing urls owned by the user
+app.get("/urls", requireLogin(false), (req, res) => {
   const templateVars = {
     user: users[req.session.user_id],
   };
@@ -67,14 +70,16 @@ app.get("/urls", requireLogin, (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.get("/urls/new", requireLogin, (req, res) => {
+// Route to display the page for creating a new URL
+app.get("/urls/new", requireLogin(), (req, res) => {
   const templateVars = {
     user: users[req.session.user_id],
   };
   res.render("urls_new", templateVars);
 });
 
-app.get("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
+// Route to display a specific URL and its details
+app.get("/urls/:id", requireLogin(false), requireOwnership(urlDatabase), (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id].longURL,
@@ -87,6 +92,7 @@ app.get("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => 
   res.render("urls_show", templateVars);
 });
 
+// Route to display the registration page if the user isn't logged in
 app.get("/register", (req, res) => {
   if (isUserLoggedIn(req)) {
     res.redirect("/urls");
@@ -99,6 +105,7 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+// Route to display the login page if the user isn't logged in
 app.get("/login", (req, res) => {
   if (isUserLoggedIn(req)) {
     res.redirect("/urls");
@@ -112,22 +119,26 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
+// Simple hello world route
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+// Route to redirect to the long URL, with analytics performed
 app.get("/u/:id", performAnalytics(urlDatabase),(req, res) => {
   const longURL = urlDatabase[req.params.id].longURL;
     
   res.redirect(longURL);
 });
 
-app.delete("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
+// Route for a user to delete an owned URL
+app.delete("/urls/:id", requireLogin(), requireOwnership(urlDatabase), (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect(`/urls/`);
 });
 
-app.put("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => {
+// Route for user to modify an owned URL
+app.put("/urls/:id", requireLogin(), requireOwnership(urlDatabase), (req, res) => {
   if (!req.body.longURL) {
     res.status(400).send(`400 Error: Your new url value is invalid`);
     return;
@@ -137,7 +148,8 @@ app.put("/urls/:id", requireLogin, requireOwnership(urlDatabase), (req, res) => 
   res.redirect(`/urls/`);
 });
 
-app.post("/urls", requireLogin, (req, res) => {
+// Route to create a new short URL for a logged-in user
+app.post("/urls", requireLogin(), (req, res) => {
   if (!req.body.longURL) {
     res.status(400).send(`400 Error: Your url is invalid`);
     return;
@@ -146,6 +158,7 @@ app.post("/urls", requireLogin, (req, res) => {
   res.redirect(`/urls/${id}`);
 });
 
+// Route to log a user in setting the cookie
 app.post("/login", (req, res) => {
   if (!req.body.email) {
     res.status(400).send(`400 Error: Invalid email address`);
@@ -165,11 +178,14 @@ app.post("/login", (req, res) => {
   res.redirect(`/urls/`);
 });
 
+// Route to log a user out and clear the cookie
 app.post("/logout", (req, res) => {
-  req.session.user_id = null; // nullify user_id
+  req.session = null; // this version fully deletes the cookie, at the cost of unique version tracking precision
+  // req.session.user_id = null; // this should be the correct version for unique visitor tracking to work correctly
   res.redirect(`/login/`);
 });
 
+// Route to register a new user, also sets a cookie
 app.post("/register", (req, res) => {
   if (!req.body.email) {
     res.status(400).send(`400 Error: Invalid email address`);
